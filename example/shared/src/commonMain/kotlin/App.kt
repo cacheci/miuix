@@ -41,6 +41,7 @@ fun App(
         keyColor = keyColor,
         paletteStyle = appState.paletteStyle,
         colorSpec = appState.colorSpec,
+        highContrast = appState.highContrast,
     ) {
         CompositionLocalProvider(
             LocalAppState provides appState,

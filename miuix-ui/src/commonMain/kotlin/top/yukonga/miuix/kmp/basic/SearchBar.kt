@@ -12,6 +12,7 @@ import androidx.compose.animation.shrinkHorizontally
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.interaction.Interaction
@@ -50,6 +51,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -169,6 +171,8 @@ fun InputField(
     leadingIcon: @Composable (() -> Unit)? = null,
     trailingIcon: @Composable (() -> Unit)? = null,
     interactionSource: MutableInteractionSource? = null,
+    borderWidth: Dp? = null,
+    borderColor: Color = MiuixTheme.colorScheme.outline,
 ) {
     val currentOnQueryChange by rememberUpdatedState(onQueryChange)
     val currentOnSearch by rememberUpdatedState(onSearch)
@@ -233,6 +237,8 @@ fun InputField(
         Modifier.pointerInput(Unit) { detectTapGestures { currentOnExpandedChange(true) } }
     }
 
+    val showBorder = (borderWidth != null) || (MiuixTheme.highContrastMode)
+
     BasicTextField(
         value = query,
         onValueChange = currentOnQueryChange,
@@ -256,6 +262,15 @@ fun InputField(
         decorationBox = { innerTextField ->
             Box(
                 modifier = Modifier
+                    .then(
+                        if (showBorder) {
+                            Modifier.border(
+                                width = borderWidth ?: SearchBarDefaults.HighContrastBorderWidth,
+                                color = borderColor,
+                                shape = capsuleShape
+                            )
+                        } else Modifier
+                    )
                     .background(
                         color = color,
                         shape = capsuleShape,
@@ -331,4 +346,9 @@ object SearchBarDefaults {
 
     /** The end padding for the default trailing icon. */
     val TrailingIconEndPadding = 16.dp
+
+    /**
+     * The default border width for high-contrast switches.
+     */
+    val HighContrastBorderWidth = 1.dp
 }

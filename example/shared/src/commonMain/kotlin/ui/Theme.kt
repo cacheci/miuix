@@ -23,18 +23,37 @@ fun AppTheme(
     keyColor: Color? = null,
     paletteStyle: Int = 0,
     colorSpec: Int = 0,
+    highContrast: Boolean = false,
     content: @Composable () -> Unit,
 ) {
     val spec = ThemeColorSpec.entries.getOrNull(colorSpec) ?: ThemeColorSpec.Spec2021
     val style = ThemePaletteStyle.entries.getOrNull(paletteStyle) ?: ThemePaletteStyle.Content
-    val controller = remember(colorMode, keyColor, spec, style) {
+    val controller = remember(colorMode, keyColor, spec, style, highContrast) {
         when (colorMode) {
-            1 -> ThemeController(ColorSchemeMode.Light)
-            2 -> ThemeController(ColorSchemeMode.Dark)
-            3 -> ThemeController(ColorSchemeMode.MonetSystem, keyColor = keyColor, colorSpec = spec, paletteStyle = style)
-            4 -> ThemeController(ColorSchemeMode.MonetLight, keyColor = keyColor, colorSpec = spec, paletteStyle = style)
-            5 -> ThemeController(ColorSchemeMode.MonetDark, keyColor = keyColor, colorSpec = spec, paletteStyle = style)
-            else -> ThemeController(ColorSchemeMode.System)
+            1 -> ThemeController(ColorSchemeMode.Light, isHighContrast = highContrast)
+            2 -> ThemeController(ColorSchemeMode.Dark, isHighContrast = highContrast)
+            3 -> ThemeController(
+                ColorSchemeMode.MonetSystem,
+                keyColor = keyColor,
+                colorSpec = spec,
+                paletteStyle = style,
+                isHighContrast = highContrast,
+            )
+            4 -> ThemeController(
+                ColorSchemeMode.MonetLight,
+                keyColor = keyColor,
+                colorSpec = spec,
+                paletteStyle = style,
+                isHighContrast = highContrast,
+            )
+            5 -> ThemeController(
+                ColorSchemeMode.MonetDark,
+                keyColor = keyColor,
+                colorSpec = spec,
+                paletteStyle = style,
+                isHighContrast = highContrast,
+            )
+            else -> ThemeController(ColorSchemeMode.System, isHighContrast = highContrast)
         }
     }
     CompositionLocalProvider(

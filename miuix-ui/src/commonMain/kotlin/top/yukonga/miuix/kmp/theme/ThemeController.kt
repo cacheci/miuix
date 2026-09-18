@@ -10,6 +10,7 @@ import androidx.compose.runtime.Stable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
@@ -212,6 +213,9 @@ internal fun monetSystemColors(dark: Boolean): Colors = colorsFromSeed(seed = Co
  *   effective [colorSpec] will fall back to [ThemeColorSpec.Spec2021].
  * @param isDark Whether the system is in dark mode. This is used when the [colorSchemeMode] is
  *   set to a System or MonetSystem mode and the dark mode is not explicitly specified.
+ * @param highContrastLightColors The color scheme used for high-contrast light appearance.
+ * @param highContrastDarkColors The color scheme used for high-contrast dark appearance.
+ * @param isHighContrast Whether high-contrast colors are enabled for non-Monet modes.
  */
 @Stable
 class ThemeController(
@@ -222,6 +226,9 @@ class ThemeController(
     colorSpec: ThemeColorSpec = ThemeColorSpec.Spec2021,
     paletteStyle: ThemePaletteStyle = ThemePaletteStyle.TonalSpot,
     isDark: Boolean? = null,
+    highContrastLightColors: Colors = highContrastLightColorScheme(),
+    highContrastDarkColors: Colors = highContrastDarkColorScheme(),
+    isHighContrast: Boolean = false,
 ) {
     val colorSchemeMode: ColorSchemeMode by mutableStateOf(colorSchemeMode)
     val lightColors: Colors by mutableStateOf(lightColors)
@@ -230,17 +237,25 @@ class ThemeController(
     val colorSpec: ThemeColorSpec by mutableStateOf(colorSpec)
     val paletteStyle: ThemePaletteStyle by mutableStateOf(paletteStyle)
     val isDark: Boolean? by mutableStateOf(isDark)
+    val highContrastLightColors: Colors by mutableStateOf(highContrastLightColors)
+    val highContrastDarkColors: Colors by mutableStateOf(highContrastDarkColors)
+    var isHighContrast: Boolean by mutableStateOf(isHighContrast)
 
     @Composable
     fun currentColors(): Colors = when (colorSchemeMode) {
         ColorSchemeMode.System -> {
             val dark = isDark ?: isSystemInDarkTheme()
-            if (dark) darkColors else lightColors
+            when {
+                dark && isHighContrast -> highContrastDarkColors
+                dark -> darkColors
+                isHighContrast -> highContrastLightColors
+                else -> lightColors
+            }
         }
 
-        ColorSchemeMode.Light -> lightColors
+        ColorSchemeMode.Light -> if (isHighContrast) highContrastLightColors else lightColors
 
-        ColorSchemeMode.Dark -> darkColors
+        ColorSchemeMode.Dark -> if (isHighContrast) highContrastDarkColors else darkColors
 
         ColorSchemeMode.MonetSystem -> {
             val dark = isDark ?: isSystemInDarkTheme()

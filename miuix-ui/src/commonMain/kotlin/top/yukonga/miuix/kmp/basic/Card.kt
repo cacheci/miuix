@@ -25,6 +25,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import top.yukonga.miuix.kmp.interfaces.HoldDownObserver
+import top.yukonga.miuix.kmp.squircle.squircleBorder
 import top.yukonga.miuix.kmp.squircle.squircleSurface
 import top.yukonga.miuix.kmp.theme.LocalContentColor
 import top.yukonga.miuix.kmp.theme.MiuixTheme
@@ -43,6 +44,7 @@ import top.yukonga.miuix.kmp.utils.pressable
  * @param cornerRadius The corner radius of the [Card].
  * @param insideMargin The margin inside the [Card].
  * @param colors [CardColors] that will be used to resolve the color(s) used for the [Card].
+ * @param borderWidth The width of the border drawn around the [Card].
  * @param content The [Composable] content of the [Card].
  */
 @Composable
@@ -52,12 +54,14 @@ fun Card(
     cornerRadius: Dp = CardDefaults.CornerRadius,
     insideMargin: PaddingValues = CardDefaults.InsideMargin,
     colors: CardColors = CardDefaults.defaultColors(),
+    borderWidth: Dp? = null,
     content: @Composable ColumnScope.() -> Unit,
 ) {
     BasicCard(
         modifier = modifier,
         cornerRadius = cornerRadius,
         colors = colors,
+        borderWidth = borderWidth,
     ) {
         Column(
             modifier = Modifier.padding(insideMargin),
@@ -81,6 +85,7 @@ fun Card(
  * @param holdDownState Whether the [Card] is in a hold-down state.
  * @param onClick The callback to be invoked when the [Card] is clicked.
  * @param onLongPress The callback to be invoked when the [Card] is long pressed.
+ * @param borderWidth The width of the border drawn around the [Card].
  * @param content The [Composable] content of the [Card].
  */
 @Composable
@@ -94,6 +99,7 @@ fun Card(
     holdDownState: Boolean = false,
     onClick: (() -> Unit)? = null,
     onLongPress: (() -> Unit)? = null,
+    borderWidth: Dp? = null,
     content: @Composable ColumnScope.() -> Unit,
 ) {
     val interactionSource = remember { MutableInteractionSource() }
@@ -141,6 +147,7 @@ fun Card(
         ),
         cornerRadius = cornerRadius,
         colors = colors,
+        borderWidth = borderWidth,
     ) {
         Column(
             modifier = Modifier
@@ -157,6 +164,7 @@ fun Card(
  * @param modifier The modifier to be applied to the [BasicCard].
  * @param colors [CardColors] that will be used to resolve the color(s) used for the [BasicCard].
  * @param cornerRadius The corner radius of the [BasicCard].
+ * @param borderWidth The width of the border drawn around the [BasicCard].
  * @param content The [Composable] content of the [BasicCard].
  */
 @Composable
@@ -164,8 +172,11 @@ private fun BasicCard(
     modifier: Modifier = Modifier,
     colors: CardColors = CardDefaults.defaultColors(),
     cornerRadius: Dp = CardDefaults.CornerRadius,
+    borderWidth: Dp? = null,
     content: @Composable () -> Unit,
 ) {
+    val showBorder = (borderWidth != null) || (MiuixTheme.highContrastMode)
+
     CompositionLocalProvider(
         LocalContentColor provides colors.contentColor,
     ) {
@@ -174,7 +185,16 @@ private fun BasicCard(
                 .semantics(mergeDescendants = false) {
                     isTraversalGroup = true
                 }
-                .squircleSurface(color = colors.color, cornerRadius = cornerRadius),
+                .squircleSurface(color = colors.color, cornerRadius = cornerRadius)
+                .then(
+                    if (showBorder) {
+                        Modifier.squircleBorder(
+                            width = borderWidth ?: CardDefaults.HighContrastBorderWidth,
+                            color = colors.borderColor,
+                            cornerRadius = cornerRadius,
+                        )
+                    } else Modifier
+                ),
             propagateMinConstraints = true,
         ) {
             content()
@@ -195,16 +215,23 @@ object CardDefaults {
     val InsideMargin = PaddingValues(0.dp)
 
     /**
+     * The default border width for high-contrast cards.
+     */
+    val HighContrastBorderWidth = 1.dp
+
+    /**
      * The default colors width of the [Card].
      */
     @Composable
     fun defaultColors(
         color: Color = MiuixTheme.colorScheme.surfaceContainer,
         contentColor: Color = MiuixTheme.colorScheme.onSurfaceContainer,
-    ): CardColors = remember(color, contentColor) {
+        borderColor: Color = MiuixTheme.colorScheme.outline,
+    ): CardColors = remember(color, contentColor, borderColor) {
         CardColors(
             color = color,
             contentColor = contentColor,
+            borderColor = borderColor,
         )
     }
 }
@@ -213,4 +240,5 @@ object CardDefaults {
 data class CardColors(
     val color: Color,
     val contentColor: Color,
+    val borderColor: Color,
 )

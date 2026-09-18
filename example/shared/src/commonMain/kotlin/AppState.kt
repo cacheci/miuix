@@ -12,6 +12,7 @@ data class AppState(
     val seedIndex: Int = 0,
     val paletteStyle: Int = 0,
     val colorSpec: Int = 0,
+    val highContrast: Boolean = false,
     // UI
     val showFPSMonitor: Boolean = false,
     val showTopAppBar: Boolean = true,

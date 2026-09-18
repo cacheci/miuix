@@ -287,7 +287,7 @@ fun FloatingNavigationBar(
     horizontalAlignment: Alignment.Horizontal = CenterHorizontally,
     horizontalOutSidePadding: Dp = FloatingNavigationBarDefaults.HorizontalOutSidePadding,
     shadowElevation: Dp = FloatingNavigationBarDefaults.ShadowElevation,
-    showDivider: Boolean = false,
+    showDivider: Boolean = MiuixTheme.highContrastMode,
     defaultWindowInsetsPadding: Boolean = true,
     content: @Composable () -> Unit,
 ) {
@@ -332,7 +332,7 @@ fun FloatingNavigationBar(
                     if (showDivider) {
                         Modifier
                             .squircleBackground(
-                                color = MiuixTheme.colorScheme.dividerLine,
+                                color = MiuixTheme.colorScheme.outline,
                                 cornerRadius = cornerRadius,
                             )
                             .padding(0.75.dp)

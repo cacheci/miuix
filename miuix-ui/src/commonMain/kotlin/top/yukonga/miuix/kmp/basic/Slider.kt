@@ -8,6 +8,7 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.draggable
 import androidx.compose.foundation.gestures.rememberDraggableState
@@ -39,6 +40,7 @@ import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.hapticfeedback.HapticFeedback
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.pointer.PointerEventType
@@ -83,6 +85,7 @@ import kotlin.math.abs
  *   Values should be within [valueRange]. For example, for a range of 0f..100f, you might specify listOf(0f, 25f, 50f, 75f, 100f).
  * @param magnetThreshold The magnetic snap threshold as a fraction (0.0 to 1.0). When the slider value is within this
  *   distance from a key point, it will snap to that point. Default is 0.02 (2%). Only applies when [keyPoints] is set.
+ * @param borderWidth The border width of the [Slider]. If null, a border is only shown in high-contrast mode.
  */
 @Composable
 fun Slider(
@@ -100,6 +103,7 @@ fun Slider(
     showKeyPoints: Boolean = false,
     keyPoints: List<Float>? = null,
     magnetThreshold: Float = 0.02f,
+    borderWidth: Dp? = null,
 ) {
     require(steps >= 0) { "steps should be >= 0" }
     require(valueRange.start < valueRange.endInclusive) { "valueRange start should be less than end" }
@@ -107,6 +111,11 @@ fun Slider(
     val hapticFeedback = LocalHapticFeedback.current
     val layoutDirection = LocalLayoutDirection.current
     val effectiveReverseDirection = if (layoutDirection == LayoutDirection.Rtl) !reverseDirection else reverseDirection
+    val effectiveBorderWidth = if (borderWidth != null || MiuixTheme.highContrastMode) {
+        borderWidth ?: SliderDefaults.HighContrastBorderWidth
+    } else {
+        null
+    }
     val onValueChangeState by rememberUpdatedState(onValueChange)
     val onValueChangeFinishedState by rememberUpdatedState(onValueChangeFinished)
     var dragOffset by remember { mutableFloatStateOf(0f) }
@@ -254,6 +263,8 @@ fun Slider(
             backgroundColor = colors.backgroundColor(enabled),
             foregroundColor = colors.foregroundColor(enabled),
             thumbColor = colors.thumbColor(enabled),
+            borderColor = colors.borderColor,
+            borderWidth = effectiveBorderWidth,
             keyPointColor = colors.keyPointColor(),
             keyPointForegroundColor = colors.keyPointForegroundColor(),
             valueProvider = { animatedValueState.value },
@@ -290,6 +301,7 @@ fun Slider(
  *   Values should be within [valueRange].
  * @param magnetThreshold The magnetic snap threshold as a fraction (0.0 to 1.0). When the slider value is within this
  *   distance from a key point, it will snap to that point. Default is 0.02 (2%). Only applies when [keyPoints] is set.
+ * @param borderWidth The border width of the [Slider]. If null, a border is only shown in high-contrast mode.
  */
 @Composable
 fun VerticalSlider(
@@ -308,9 +320,16 @@ fun VerticalSlider(
     showKeyPoints: Boolean = false,
     keyPoints: List<Float>? = null,
     magnetThreshold: Float = 0.02f,
+    borderWidth: Dp? = null,
 ) {
     require(steps >= 0) { "steps should be >= 0" }
     require(valueRange.start < valueRange.endInclusive) { "valueRange start should be less than end" }
+
+    val effectiveBorderWidth = if (borderWidth != null || MiuixTheme.highContrastMode) {
+        borderWidth ?: SliderDefaults.HighContrastBorderWidth
+    } else {
+        null
+    }
 
     val hapticFeedback = LocalHapticFeedback.current
     val onValueChangeState by rememberUpdatedState(onValueChange)
@@ -457,6 +476,8 @@ fun VerticalSlider(
             backgroundColor = colors.backgroundColor(enabled),
             foregroundColor = colors.foregroundColor(enabled),
             thumbColor = colors.thumbColor(enabled),
+            borderColor = colors.borderColor,
+            borderWidth = effectiveBorderWidth,
             keyPointColor = colors.keyPointColor(),
             keyPointForegroundColor = colors.keyPointForegroundColor(),
             valueProvider = { animatedValueState.value },
@@ -493,6 +514,7 @@ fun VerticalSlider(
  *   Values should be within [valueRange].
  * @param magnetThreshold The magnetic snap threshold as a fraction (0.0 to 1.0). When the slider value is within this
  *   distance from a key point, it will snap to that point. Default is 0.02 (2%). Only applies when [keyPoints] is set.
+ * @param borderWidth The border width of the [RangeSlider]. If null, a border is only shown in high-contrast mode.
  */
 @Composable
 fun RangeSlider(
@@ -509,6 +531,7 @@ fun RangeSlider(
     showKeyPoints: Boolean = false,
     keyPoints: List<Float>? = null,
     magnetThreshold: Float = 0.02f,
+    borderWidth: Dp? = null,
 ) {
     require(steps >= 0) { "steps should be >= 0" }
     require(valueRange.start < valueRange.endInclusive) { "valueRange start should be less than end" }
@@ -516,6 +539,11 @@ fun RangeSlider(
     val hapticFeedback = LocalHapticFeedback.current
     val layoutDirection = LocalLayoutDirection.current
     val isRtl = layoutDirection == LayoutDirection.Rtl
+    val effectiveBorderWidth = if (borderWidth != null || MiuixTheme.highContrastMode) {
+        borderWidth ?: SliderDefaults.HighContrastBorderWidth
+    } else {
+        null
+    }
     val onValueChangeState by rememberUpdatedState(onValueChange)
     val onValueChangeFinishedState by rememberUpdatedState(onValueChangeFinished)
     var startDragOffset by remember { mutableFloatStateOf(0f) }
@@ -799,6 +827,8 @@ fun RangeSlider(
             backgroundColor = colors.backgroundColor(enabled),
             foregroundColor = colors.foregroundColor(enabled),
             thumbColor = colors.thumbColor(enabled),
+            borderColor = colors.borderColor,
+            borderWidth = effectiveBorderWidth,
             keyPointColor = colors.keyPointColor(),
             keyPointForegroundColor = colors.keyPointForegroundColor(),
             valueStartProvider = { animatedStartValueState.value },
@@ -823,6 +853,8 @@ private fun SliderTrack(
     backgroundColor: Color,
     foregroundColor: Color,
     thumbColor: Color,
+    borderColor: Color,
+    borderWidth: Dp?,
     keyPointColor: Color,
     keyPointForegroundColor: Color,
     valueProvider: () -> Float,
@@ -843,6 +875,17 @@ private fun SliderTrack(
 
     Canvas(
         modifier = modifier
+            .then(
+                if (borderWidth != null) {
+                    Modifier.border(
+                        width = borderWidth,
+                        color = borderColor,
+                        shape = CircleShape,
+                    )
+                } else {
+                    Modifier
+                }
+            )
             .clip(CircleShape)
             .drawBehind {
                 drawRect(backgroundColor)
@@ -883,11 +926,21 @@ private fun SliderTrack(
                     )
                 }
             }
+            val scaledThumbRadius = thumbRadius * 0.72f * thumbScale
             drawCircle(
                 color = thumbColor,
-                radius = thumbRadius * 0.72f * thumbScale,
+                radius = scaledThumbRadius,
                 center = Offset(barWidth / 2f, centerY),
             )
+            if (borderWidth != null) {
+                val strokeWidth = borderWidth.toPx()
+                drawCircle(
+                    color = borderColor,
+                    radius = (scaledThumbRadius - strokeWidth / 2f).coerceAtLeast(0f),
+                    center = Offset(barWidth / 2f, centerY),
+                    style = Stroke(width = strokeWidth),
+                )
+            }
         } else {
             val thumbRadius = barHeight / 2f
             val availableWidth = (barWidth - 2f * thumbRadius).coerceAtLeast(0f)
@@ -918,11 +971,21 @@ private fun SliderTrack(
                     )
                 }
             }
+            val scaledThumbRadius = thumbRadius * 0.72f * thumbScale
             drawCircle(
                 color = thumbColor,
-                radius = thumbRadius * 0.72f * thumbScale,
+                radius = scaledThumbRadius,
                 center = Offset(centerX, barHeight / 2f),
             )
+            if (borderWidth != null) {
+                val strokeWidth = borderWidth.toPx()
+                drawCircle(
+                    color = borderColor,
+                    radius = (scaledThumbRadius - strokeWidth / 2f).coerceAtLeast(0f),
+                    center = Offset(centerX, barHeight / 2f),
+                    style = Stroke(width = strokeWidth),
+                )
+            }
         }
     }
 }
@@ -935,6 +998,8 @@ private fun RangeSliderTrack(
     backgroundColor: Color,
     foregroundColor: Color,
     thumbColor: Color,
+    borderColor: Color,
+    borderWidth: Dp?,
     keyPointColor: Color,
     keyPointForegroundColor: Color,
     valueStartProvider: () -> Float,
@@ -956,6 +1021,17 @@ private fun RangeSliderTrack(
 
     Canvas(
         modifier = modifier
+            .then(
+                if (borderWidth != null) {
+                    Modifier.border(
+                        width = borderWidth,
+                        color = borderColor,
+                        shape = CircleShape,
+                    )
+                } else {
+                    Modifier
+                }
+            )
             .clip(CircleShape)
             .drawBehind {
                 drawRect(backgroundColor)
@@ -1003,16 +1079,36 @@ private fun RangeSliderTrack(
             }
         }
 
+        val startThumbRadius = thumbRadius * 0.72f * startThumbScale
+        val endThumbRadius = thumbRadius * 0.72f * endThumbScale
         drawCircle(
             color = thumbColor,
-            radius = thumbRadius * 0.72f * startThumbScale,
+            radius = startThumbRadius,
             center = Offset(startX, centerY),
         )
+        if (borderWidth != null) {
+            val strokeWidth = borderWidth.toPx()
+            drawCircle(
+                color = borderColor,
+                radius = (startThumbRadius - strokeWidth / 2f).coerceAtLeast(0f),
+                center = Offset(startX, centerY),
+                style = Stroke(width = strokeWidth),
+            )
+        }
         drawCircle(
             color = thumbColor,
-            radius = thumbRadius * 0.72f * endThumbScale,
+            radius = endThumbRadius,
             center = Offset(endX, centerY),
         )
+        if (borderWidth != null) {
+            val strokeWidth = borderWidth.toPx()
+            drawCircle(
+                color = borderColor,
+                radius = (endThumbRadius - strokeWidth / 2f).coerceAtLeast(0f),
+                center = Offset(endX, centerY),
+                style = Stroke(width = strokeWidth),
+            )
+        }
     }
 }
 
@@ -1347,6 +1443,11 @@ private fun computeAllKeyPointFractions(
 
 object SliderDefaults {
     /**
+     * The recommended border width for high-contrast sliders.
+     */
+    val HighContrastBorderWidth = 1.dp
+
+    /**
      * The minimum height of the [Slider] and [RangeSlider].
      */
     val MinHeight = 28.dp
@@ -1385,6 +1486,7 @@ object SliderDefaults {
         disabledThumbColor: Color = MiuixTheme.colorScheme.disabledOnPrimary,
         keyPointColor: Color = MiuixTheme.colorScheme.sliderKeyPoint,
         keyPointForegroundColor: Color = MiuixTheme.colorScheme.sliderKeyPointForeground,
+        borderColor: Color = MiuixTheme.colorScheme.outline,
     ): SliderColors = remember(
         foregroundColor,
         disabledForegroundColor,
@@ -1394,6 +1496,7 @@ object SliderDefaults {
         disabledThumbColor,
         keyPointColor,
         keyPointForegroundColor,
+        borderColor,
     ) {
         SliderColors(
             foregroundColor = foregroundColor,
@@ -1404,6 +1507,7 @@ object SliderDefaults {
             disabledThumbColor = disabledThumbColor,
             keyPointColor = keyPointColor,
             keyPointForegroundColor = keyPointForegroundColor,
+            borderAllColor = borderColor,
         )
     }
 }
@@ -1418,6 +1522,7 @@ data class SliderColors(
     private val disabledThumbColor: Color,
     private val keyPointColor: Color,
     private val keyPointForegroundColor: Color,
+    private val borderAllColor: Color,
 ) {
     @Stable
     internal fun foregroundColor(enabled: Boolean): Color = if (enabled) foregroundColor else disabledForegroundColor
@@ -1433,4 +1538,6 @@ data class SliderColors(
 
     @Stable
     internal fun keyPointForegroundColor(): Color = keyPointForegroundColor
+
+    internal val borderColor: Color = borderAllColor
 }

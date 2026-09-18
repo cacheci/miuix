@@ -219,7 +219,7 @@ fun CircularProgressIndicator(
 @Composable
 fun InfiniteProgressIndicator(
     modifier: Modifier = Modifier,
-    color: Color = Color.Gray,
+    color: Color = if (MiuixTheme.highContrastMode) MiuixTheme.colorScheme.onSurface else Color.Gray,
     size: Dp = ProgressIndicatorDefaults.DefaultInfiniteProgressIndicatorSize,
     strokeWidth: Dp = ProgressIndicatorDefaults.DefaultInfiniteProgressIndicatorStrokeWidth,
     orbitingDotSize: Dp = ProgressIndicatorDefaults.DefaultInfiniteProgressIndicatorOrbitingDotSize,

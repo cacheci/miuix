@@ -69,6 +69,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import top.yukonga.miuix.kmp.theme.MiuixTheme
 import top.yukonga.miuix.kmp.utils.LocalOverScrollState
 import top.yukonga.miuix.kmp.utils.OverScrollState
 import top.yukonga.miuix.kmp.utils.SpringEngine
@@ -129,7 +130,7 @@ fun PullToRefresh(
     pullToRefreshState: PullToRefreshState = rememberPullToRefreshState(),
     contentPadding: PaddingValues = PaddingValues(0.dp),
     topAppBarScrollBehavior: ScrollBehavior? = null,
-    color: Color = PullToRefreshDefaults.color,
+    color: Color = if (MiuixTheme.highContrastMode) MiuixTheme.colorScheme.onSurface else PullToRefreshDefaults.color,
     circleSize: Dp = PullToRefreshDefaults.circleSize,
     refreshTexts: List<String> = PullToRefreshDefaults.refreshTexts,
     refreshTextStyle: TextStyle = PullToRefreshDefaults.refreshTextStyle,

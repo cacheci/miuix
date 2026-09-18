@@ -7,6 +7,7 @@ import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
+import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.draggable
 import androidx.compose.foundation.gestures.rememberDraggableState
@@ -35,7 +36,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
@@ -68,6 +71,7 @@ fun Switch(
     onCheckedChange: ((Boolean) -> Unit)?,
     modifier: Modifier = Modifier,
     colors: SwitchColors = SwitchDefaults.switchColors(),
+    borderWidth: Dp? = null,
     enabled: Boolean = true,
 ) {
     val currentOnCheckedChange by rememberUpdatedState(onCheckedChange)
@@ -137,13 +141,58 @@ fun Switch(
         }
     }
 
+    val showBorder = (borderWidth != null) || (MiuixTheme.highContrastMode)
+    val highContrastMode = MiuixTheme.highContrastMode
+
     Box(
         modifier = modifier
             .wrapContentSize(Alignment.Center)
             .size(49.dp, 28.dp)
+            .then(
+                if (showBorder) {
+                    Modifier.border(
+                        width = borderWidth ?: SwitchDefaults.HighContrastBorderWidth,
+                        color = colors.borderColor,
+                        shape = capsuleShape,
+                    )
+                } else Modifier
+            )
             .clip(capsuleShape)
             .drawBehind {
                 drawRect(backgroundColorState.value)
+                if (highContrastMode) {
+                    val markerCenter = Offset(
+                        x = if (checked) size.height / 2f else size.width - size.height / 2f,
+                        y = size.height / 2f,
+                    )
+                    val markerRadius = size.height * 0.14f
+                    val markerStrokeWidth = (borderWidth ?: SwitchDefaults.HighContrastBorderWidth).toPx()
+
+                    if (enabled) {
+                        drawLine(
+                            color = thumbColorState.value,
+                            start = markerCenter.copy(y = markerCenter.y - markerRadius),
+                            end = markerCenter.copy(y = markerCenter.y + markerRadius),
+                            strokeWidth = markerStrokeWidth,
+                            cap = StrokeCap.Round,
+                        )
+                    } else {
+                        drawLine(
+                            color = thumbColorState.value,
+                            start = markerCenter - Offset(markerRadius, markerRadius),
+                            end = markerCenter + Offset(markerRadius, markerRadius),
+                            strokeWidth = markerStrokeWidth,
+                            cap = StrokeCap.Round,
+                        )
+                        drawLine(
+                            color = thumbColorState.value,
+                            start = markerCenter + Offset(markerRadius, -markerRadius),
+                            end = markerCenter + Offset(-markerRadius, markerRadius),
+                            strokeWidth = markerStrokeWidth,
+                            cap = StrokeCap.Round,
+                        )
+                    }
+                }
             }
             .hoverable(
                 interactionSource = interactionSource,
@@ -165,6 +214,17 @@ fun Switch(
                 .drawBehind {
                     drawCircle(color = thumbColorState.value)
                 }
+                .then(
+                    if (showBorder) {
+                        Modifier.border(
+                            width = borderWidth ?: SwitchDefaults.HighContrastBorderWidth,
+                            color = colors.borderColor,
+                            shape = CircleShape,
+                        )
+                    } else {
+                        Modifier
+                    }
+                )
                 .then(
                     if (enabled) {
                         Modifier.draggable(
@@ -224,6 +284,11 @@ fun Switch(
 object SwitchDefaults {
 
     /**
+     * The recommended border width for high-contrast switches.
+     */
+    val HighContrastBorderWidth = 1.dp
+
+    /**
      * The default colors for the [Switch].
      */
     @Composable
@@ -236,6 +301,7 @@ object SwitchDefaults {
         uncheckedTrackColor: Color = MiuixTheme.colorScheme.secondary,
         disabledCheckedTrackColor: Color = MiuixTheme.colorScheme.disabledPrimary,
         disabledUncheckedTrackColor: Color = MiuixTheme.colorScheme.disabledSecondary,
+        borderColor: Color = MiuixTheme.colorScheme.outline,
     ): SwitchColors = remember(
         checkedThumbColor,
         uncheckedThumbColor,
@@ -245,6 +311,7 @@ object SwitchDefaults {
         uncheckedTrackColor,
         disabledCheckedTrackColor,
         disabledUncheckedTrackColor,
+        borderColor,
     ) {
         SwitchColors(
             checkedThumbColor = checkedThumbColor,
@@ -255,6 +322,7 @@ object SwitchDefaults {
             uncheckedTrackColor = uncheckedTrackColor,
             disabledCheckedTrackColor = disabledCheckedTrackColor,
             disabledUncheckedTrackColor = disabledUncheckedTrackColor,
+            borderAllColor = borderColor,
         )
     }
 }
@@ -269,6 +337,7 @@ data class SwitchColors(
     private val uncheckedTrackColor: Color,
     private val disabledCheckedTrackColor: Color,
     private val disabledUncheckedTrackColor: Color,
+    private val borderAllColor: Color,
 ) {
     @Stable
     internal fun checkedThumbColor(enabled: Boolean): Color = if (enabled) checkedThumbColor else disabledCheckedThumbColor
@@ -281,4 +350,6 @@ data class SwitchColors(
 
     @Stable
     internal fun uncheckedTrackColor(enabled: Boolean): Color = if (enabled) uncheckedTrackColor else disabledUncheckedTrackColor
+
+    internal val borderColor: Color = borderAllColor
 }

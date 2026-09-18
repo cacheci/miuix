@@ -155,6 +155,11 @@ private fun SettingsContent(
                             )
                         }
                     }
+                    SwitchPreference(
+                        title = "High Contrast Mode",
+                        checked = appState.highContrast,
+                        onCheckedChange = { updateAppState { state -> state.copy(highContrast = it) } },
+                    )
                     AnimatedVisibility(visible = isRuntimeShaderSupported()) {
                         SwitchPreference(
                             title = "Enable Squircle Shapes",

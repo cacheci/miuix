@@ -18,7 +18,9 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import top.yukonga.miuix.kmp.interfaces.HoldDownObserver
+import top.yukonga.miuix.kmp.squircle.squircleBorder
 import top.yukonga.miuix.kmp.squircle.squircleSurface
+import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 /**
  * A [IconButton] component with Miuix style.
@@ -46,6 +48,7 @@ fun IconButton(
     cornerRadius: Dp = IconButtonDefaults.CornerRadius,
     minHeight: Dp = IconButtonDefaults.MinHeight,
     minWidth: Dp = IconButtonDefaults.MinWidth,
+    borderWidth: Dp? = null,
     content: @Composable () -> Unit,
 ) {
     val interactionSource = remember { MutableInteractionSource() }
@@ -65,9 +68,22 @@ fun IconButton(
         }
     }
 
+    val showBorder = (borderWidth != null) || (MiuixTheme.highContrastMode)
+
     Box(
         modifier = modifier
             .defaultMinSize(minWidth = minWidth, minHeight = minHeight)
+            .then(
+                if (showBorder) {
+                    Modifier.squircleBorder(
+                        width = borderWidth ?: IconButtonDefaults.HighContrastBorderWidth,
+                        color = MiuixTheme.colorScheme.outline,
+                        cornerRadius = cornerRadius,
+                    )
+                } else {
+                    Modifier
+                }
+            )
             .squircleSurface(color = backgroundColor, cornerRadius = cornerRadius)
             .then(clickableModifier),
         contentAlignment = Alignment.Center,
@@ -92,4 +108,6 @@ object IconButtonDefaults {
      * The default corner radius of the [IconButton].
      */
     val CornerRadius = 40.dp
+
+    val HighContrastBorderWidth = 1.dp
 }

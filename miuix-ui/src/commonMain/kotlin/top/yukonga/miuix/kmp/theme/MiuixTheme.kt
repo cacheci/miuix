@@ -7,8 +7,10 @@ import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.LocalOverscrollFactory
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.ProvidableCompositionLocal
 import androidx.compose.runtime.ReadOnlyComposable
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.staticCompositionLocalOf
 import top.yukonga.miuix.kmp.utils.MiuixIndication
 import top.yukonga.miuix.kmp.utils.MiuixOverscrollFactory
 
@@ -36,6 +38,7 @@ fun MiuixTheme(
         LocalIndication provides miuixIndication,
         LocalContentColor provides miuixColors.onBackground,
         LocalColorSchemeMode provides controller.colorSchemeMode,
+        LocalHighContrastMode provides controller.isHighContrast,
         LocalOverscrollFactory provides MiuixOverscrollFactory,
     ) {
         content()
@@ -92,4 +95,10 @@ object MiuixTheme {
 
             else -> false
         }
+
+    val highContrastMode: Boolean
+        @Composable @ReadOnlyComposable
+        get() = LocalHighContrastMode.current
 }
+
+internal val LocalHighContrastMode: ProvidableCompositionLocal<Boolean> = staticCompositionLocalOf { false }

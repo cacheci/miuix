@@ -615,4 +615,22 @@ internal fun Colors.updateColorsFrom(other: Colors) {
     sliderBackground = other.sliderBackground
 }
 
+fun highContrastLightColorScheme(): Colors = lightColorScheme(
+    primary = Color(0xFF0042B8),
+    surface = Color(0xFFE7E7E7),
+    onSurfaceContainerHigh = Color(0xFF393939),
+    dividerLine = Color(0xFF242424),
+    outline = Color(0xFF242424),
+    onBackgroundVariant = Color(0xFF38394E),
+)
+
+fun highContrastDarkColorScheme(): Colors = darkColorScheme(
+    primary = Color(0xFF5899FF),
+    onPrimary = Color(0xFF00163D),
+    onSurfaceContainerHigh = Color(0xFFBBBBBB),
+    dividerLine = Color(0xFF919191),
+    outline = Color(0xFF919191),
+    onBackgroundVariant = Color(0xFFAEB5D4),
+)
+
 internal val LocalColors = staticCompositionLocalOf { lightColorScheme() }

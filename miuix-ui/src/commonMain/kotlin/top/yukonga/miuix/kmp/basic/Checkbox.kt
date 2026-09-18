@@ -10,6 +10,7 @@ import androidx.compose.animation.core.keyframes
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.core.updateTransition
+import androidx.compose.foundation.border
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.requiredSize
@@ -40,6 +41,7 @@ import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.toggleableState
 import androidx.compose.ui.state.ToggleableState
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.lerp
 import top.yukonga.miuix.kmp.theme.MiuixTheme
@@ -62,6 +64,7 @@ fun Checkbox(
     onClick: (() -> Unit)?,
     modifier: Modifier = Modifier,
     colors: CheckboxColors = CheckboxDefaults.checkboxColors(),
+    borderWidth: Dp? = null,
     enabled: Boolean = true,
 ) {
     val currentOnClickState = rememberUpdatedState(onClick)
@@ -81,7 +84,9 @@ fun Checkbox(
         transitionSpec = { tween(durationMillis = 300, easing = FastOutSlowInEasing) },
         label = "ForegroundColor",
     ) {
-        if (it != ToggleableState.Off) colors.checkedForegroundColor(enabled) else colors.uncheckedForegroundColor(enabled)
+        if (it != ToggleableState.Off) colors.checkedForegroundColor(
+            enabled, MiuixTheme.highContrastMode
+        ) else colors.uncheckedForegroundColor(enabled)
     }
 
     val checkAlphaState = transition.animateFloat(
@@ -167,6 +172,9 @@ fun Checkbox(
         }
     }
 
+    val showBorder = (borderWidth != null) || (MiuixTheme.highContrastMode)
+    val showDisabledMark = !enabled && state == ToggleableState.Off && MiuixTheme.highContrastMode
+
     Box(
         modifier = modifier
             .wrapContentSize(Alignment.Center)
@@ -177,10 +185,19 @@ fun Checkbox(
                 enabled = enabled,
                 delay = null,
             )
+            .then(if (showBorder) {
+                Modifier.border(
+                    width = borderWidth ?: CheckboxDefaults.HighContrastBorderWidth,
+                    color = colors.borderColor,
+                    shape = capsuleShape
+                )
+            } else Modifier)
             .clip(capsuleShape)
             .drawWithCache {
                 val viewportSize = 23f
                 val strokeWidth = size.width * 0.09f
+                val disabledMarkInset = size.minDimension * 0.25f
+                val disabledMarkStrokeWidth = (CheckboxDefaults.HighContrastBorderWidth).toPx()
                 val centerX = size.width / 2
                 val centerY = size.height / 2
                 val viewportCenterX = viewportSize / 2
@@ -217,6 +234,22 @@ fun Checkbox(
 
                 onDrawBehind {
                     drawCircle(backgroundColorState.value)
+                    if (showDisabledMark) {
+                        drawLine(
+                            color = colors.borderColor,
+                            start = Offset(disabledMarkInset, disabledMarkInset),
+                            end = Offset(size.width - disabledMarkInset, size.height - disabledMarkInset),
+                            strokeWidth = disabledMarkStrokeWidth,
+                            cap = StrokeCap.Round,
+                        )
+                        drawLine(
+                            color = colors.borderColor,
+                            start = Offset(size.width - disabledMarkInset, disabledMarkInset),
+                            end = Offset(disabledMarkInset, size.height - disabledMarkInset),
+                            strokeWidth = disabledMarkStrokeWidth,
+                            cap = StrokeCap.Round,
+                        )
+                    }
                     drawTrimmedCheckmark(
                         color = foregroundColorState.value,
                         alpha = checkAlphaState.value,
@@ -313,6 +346,8 @@ private fun DrawScope.drawTrimmedCheckmark(
 }
 
 object CheckboxDefaults {
+    val HighContrastBorderWidth = 1.dp
+
     @Composable
     fun checkboxColors(
         checkedForegroundColor: Color = MiuixTheme.colorScheme.onPrimary,
@@ -323,6 +358,7 @@ object CheckboxDefaults {
         uncheckedBackgroundColor: Color = MiuixTheme.colorScheme.secondary,
         disabledCheckedBackgroundColor: Color = MiuixTheme.colorScheme.disabledPrimary,
         disabledUncheckedBackgroundColor: Color = MiuixTheme.colorScheme.disabledSecondary,
+        borderColor: Color = MiuixTheme.colorScheme.outline,
     ): CheckboxColors = remember(
         checkedForegroundColor,
         uncheckedForegroundColor,
@@ -332,6 +368,7 @@ object CheckboxDefaults {
         uncheckedBackgroundColor,
         disabledCheckedBackgroundColor,
         disabledUncheckedBackgroundColor,
+        borderColor,
     ) {
         CheckboxColors(
             checkedForegroundColor = checkedForegroundColor,
@@ -342,6 +379,7 @@ object CheckboxDefaults {
             uncheckedBackgroundColor = uncheckedBackgroundColor,
             disabledCheckedBackgroundColor = disabledCheckedBackgroundColor,
             disabledUncheckedBackgroundColor = disabledUncheckedBackgroundColor,
+            borderAllColor = borderColor,
         )
     }
 }
@@ -356,12 +394,14 @@ data class CheckboxColors(
     private val uncheckedBackgroundColor: Color,
     private val disabledCheckedBackgroundColor: Color,
     private val disabledUncheckedBackgroundColor: Color,
+    private val borderAllColor: Color
 ) {
-    internal fun checkedForegroundColor(enabled: Boolean): Color = if (enabled) checkedForegroundColor else disabledCheckedForegroundColor
+    internal fun checkedForegroundColor(enabled: Boolean, highContrast: Boolean): Color = if (enabled) checkedForegroundColor else if (highContrast) borderAllColor else disabledCheckedForegroundColor
 
     internal fun uncheckedForegroundColor(enabled: Boolean): Color = if (enabled) uncheckedForegroundColor else disabledUncheckedForegroundColor
 
     internal fun checkedBackgroundColor(enabled: Boolean): Color = if (enabled) checkedBackgroundColor else disabledCheckedBackgroundColor
 
     internal fun uncheckedBackgroundColor(enabled: Boolean): Color = if (enabled) uncheckedBackgroundColor else disabledUncheckedBackgroundColor
+    internal val borderColor: Color = borderAllColor
 }

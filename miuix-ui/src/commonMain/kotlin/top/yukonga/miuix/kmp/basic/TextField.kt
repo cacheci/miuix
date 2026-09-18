@@ -381,6 +381,9 @@ object TextFieldDefaults {
     /** The default border width when the [TextField] is focused. */
     internal val BorderWidth = 2.dp
 
+    /** The default border width for high-contrast [TextField]. */
+    internal val HighContrastBorderWidth = 1.dp
+
     /** The label font size when the label is floating above the text. */
     internal val LabelFontSizeFloating = 10.dp
 
@@ -399,11 +402,13 @@ object TextFieldDefaults {
         backgroundColor: Color = MiuixTheme.colorScheme.secondaryContainer,
         labelColor: Color = MiuixTheme.colorScheme.onSecondaryContainer,
         borderColor: Color = MiuixTheme.colorScheme.primary,
+        highContrastBorderColor: Color = MiuixTheme.colorScheme.outline,
     ): TextFieldColors = remember(backgroundColor, labelColor, borderColor) {
         TextFieldColors(
             backgroundColor = backgroundColor,
             labelColor = labelColor,
             borderColor = borderColor,
+            highContrastBorderColor = highContrastBorderColor,
         )
     }
 }
@@ -420,6 +425,7 @@ data class TextFieldColors(
     val backgroundColor: Color,
     val labelColor: Color,
     val borderColor: Color,
+    val highContrastBorderColor: Color,
 )
 
 /**
@@ -439,8 +445,10 @@ private fun TextFieldChrome(
     isFocused: Boolean,
     innerTextField: @Composable () -> Unit,
 ) {
-    val borderWidthState = animateDpAsState(if (isFocused) TextFieldDefaults.BorderWidth else 0.dp)
-    val borderColorState = animateColorAsState(if (isFocused) colors.borderColor else colors.backgroundColor)
+    val borderWidthState = animateDpAsState(
+        if (isFocused) TextFieldDefaults.BorderWidth else if (MiuixTheme.highContrastMode) TextFieldDefaults.HighContrastBorderWidth else 0.dp
+    )
+    val borderColorState = animateColorAsState(if (isFocused) colors.borderColor else if (MiuixTheme.highContrastMode) colors.highContrastBorderColor else colors.backgroundColor)
     val labelAnim = animateDpAsState(
         when (labelState) {
             LabelAnimState.Floating -> -insideMargin.height / 2

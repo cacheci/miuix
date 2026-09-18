@@ -27,6 +27,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import top.yukonga.miuix.kmp.squircle.squircleBorder
 import top.yukonga.miuix.kmp.squircle.squircleSurface
 import top.yukonga.miuix.kmp.theme.LocalContentColor
 import top.yukonga.miuix.kmp.theme.MiuixTheme
@@ -58,6 +59,7 @@ fun Button(
     insideMargin: PaddingValues = ButtonDefaults.InsideMargin,
     interactionSource: MutableInteractionSource? = null,
     indication: Indication? = LocalIndication.current,
+    borderWidth: Dp? = null,
     content: @Composable RowScope.() -> Unit,
 ) {
     @Suppress("NAME_SHADOWING")
@@ -69,11 +71,23 @@ fun Button(
     }
     val containerColor = if (enabled) colors.color else colors.disabledColor
     val contentColor = if (enabled) colors.contentColor else colors.disabledContentColor
+    val showBorder = (borderWidth != null) || (MiuixTheme.highContrastMode)
     CompositionLocalProvider(LocalContentColor provides contentColor) {
         Box(
             modifier = modifier
                 .semantics { role = Role.Button }
                 .squircleSurface(color = containerColor, cornerRadius = cornerRadius)
+                .then(
+                    if (showBorder) {
+                        Modifier.squircleBorder(
+                            width = borderWidth ?: ButtonDefaults.HighContrastBorderWidth,
+                            color = colors.borderColor,
+                            cornerRadius = cornerRadius,
+                        )
+                    } else {
+                        Modifier
+                    }
+                )
                 .clickable(
                     interactionSource = interactionSource,
                     indication = indication,
@@ -120,6 +134,7 @@ fun TextButton(
     insideMargin: PaddingValues = ButtonDefaults.InsideMargin,
     textStyle: TextStyle? = null,
     interactionSource: MutableInteractionSource? = null,
+    borderWidth: Dp? = null,
     indication: Indication? = LocalIndication.current,
 ) {
     val mappedColors = remember(colors) {
@@ -128,6 +143,7 @@ fun TextButton(
             disabledColor = colors.disabledColor,
             contentColor = colors.textColor,
             disabledContentColor = colors.disabledTextColor,
+            borderColor = colors.borderColor,
         )
     }
     Button(
@@ -140,6 +156,7 @@ fun TextButton(
         colors = mappedColors,
         insideMargin = insideMargin,
         interactionSource = interactionSource,
+        borderWidth = borderWidth,
         indication = indication,
     ) {
         Text(
@@ -174,6 +191,11 @@ object ButtonDefaults {
     val InsideMargin = PaddingValues(horizontal = 16.dp, vertical = 13.dp)
 
     /**
+     * The recommended border width for high-contrast buttons.
+     */
+    val HighContrastBorderWidth = 1.dp
+
+    /**
      * The default [ButtonColors] for all buttons.
      */
     @Composable
@@ -182,12 +204,14 @@ object ButtonDefaults {
         disabledColor: Color = MiuixTheme.colorScheme.disabledSecondaryVariant,
         contentColor: Color = MiuixTheme.colorScheme.onSecondaryVariant,
         disabledContentColor: Color = MiuixTheme.colorScheme.disabledOnSecondaryVariant,
-    ): ButtonColors = remember(color, disabledColor, contentColor, disabledContentColor) {
+        borderColor: Color = MiuixTheme.colorScheme.outline,
+    ): ButtonColors = remember(color, disabledColor, contentColor, disabledContentColor, borderColor) {
         ButtonColors(
             color = color,
             disabledColor = disabledColor,
             contentColor = contentColor,
             disabledContentColor = disabledContentColor,
+            borderColor = borderColor,
         )
     }
 
@@ -200,12 +224,14 @@ object ButtonDefaults {
         disabledColor: Color = MiuixTheme.colorScheme.disabledPrimaryButton,
         contentColor: Color = MiuixTheme.colorScheme.onPrimary,
         disabledContentColor: Color = MiuixTheme.colorScheme.disabledOnPrimaryButton,
-    ): ButtonColors = remember(color, disabledColor, contentColor, disabledContentColor) {
+        borderColor: Color = MiuixTheme.colorScheme.outline,
+    ): ButtonColors = remember(color, disabledColor, contentColor, disabledContentColor, borderColor) {
         ButtonColors(
             color = color,
             disabledColor = disabledColor,
             contentColor = contentColor,
             disabledContentColor = disabledContentColor,
+            borderColor = borderColor,
         )
     }
 
@@ -218,12 +244,14 @@ object ButtonDefaults {
         disabledColor: Color = MiuixTheme.colorScheme.disabledSecondaryVariant,
         textColor: Color = MiuixTheme.colorScheme.onSecondaryVariant,
         disabledTextColor: Color = MiuixTheme.colorScheme.disabledOnSecondaryVariant,
-    ): TextButtonColors = remember(color, disabledColor, textColor, disabledTextColor) {
+        borderColor: Color = MiuixTheme.colorScheme.outline,
+    ): TextButtonColors = remember(color, disabledColor, textColor, disabledTextColor, borderColor) {
         TextButtonColors(
             color = color,
             disabledColor = disabledColor,
             textColor = textColor,
             disabledTextColor = disabledTextColor,
+            borderColor = borderColor,
         )
     }
 
@@ -236,12 +264,14 @@ object ButtonDefaults {
         disabledColor: Color = MiuixTheme.colorScheme.disabledPrimaryButton,
         textColor: Color = MiuixTheme.colorScheme.onPrimary,
         disabledTextColor: Color = MiuixTheme.colorScheme.disabledOnPrimaryButton,
-    ): TextButtonColors = remember(color, disabledColor, textColor, disabledTextColor) {
+        borderColor: Color = MiuixTheme.colorScheme.outline,
+    ): TextButtonColors = remember(color, disabledColor, textColor, disabledTextColor, borderColor) {
         TextButtonColors(
             color = color,
             disabledColor = disabledColor,
             textColor = textColor,
             disabledTextColor = disabledTextColor,
+            borderColor = borderColor,
         )
     }
 }
@@ -252,6 +282,7 @@ data class ButtonColors(
     val disabledColor: Color,
     val contentColor: Color,
     val disabledContentColor: Color,
+    val borderColor: Color,
 )
 
 @Immutable
@@ -260,4 +291,5 @@ data class TextButtonColors(
     val disabledColor: Color,
     val textColor: Color,
     val disabledTextColor: Color,
+    val borderColor: Color,
 )

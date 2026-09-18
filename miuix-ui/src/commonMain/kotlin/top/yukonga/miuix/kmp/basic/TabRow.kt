@@ -207,10 +207,13 @@ fun TabRowWithContour(
     listState: LazyListState? = null,
     interactionSource: MutableInteractionSource? = null,
     indication: Indication? = null,
+    borderWidth: Dp? = null,
 ) {
     val currentOnTabSelected by rememberUpdatedState(onTabSelected)
     val contourPadding = 5.dp
     val outerCornerRadius = cornerRadius + contourPadding
+
+    val showBorder = (borderWidth != null) || (MiuixTheme.highContrastMode)
 
     BoxWithConstraints(
         modifier = Modifier
@@ -268,6 +271,15 @@ fun TabRowWithContour(
             modifier = Modifier
                 .fillMaxSize()
                 .squircleBackground(color = colors.backgroundColor(false), cornerRadius = outerCornerRadius)
+                .then(
+                    if (showBorder) {
+                        Modifier.squircleBorder(
+                            width = borderWidth ?: SearchBarDefaults.HighContrastBorderWidth,
+                            color = colors.borderColor(),
+                            cornerRadius = outerCornerRadius,
+                        )
+                    } else Modifier
+                )
                 .padding(contourPadding),
         ) {
             Box(
@@ -275,7 +287,16 @@ fun TabRowWithContour(
                     .offset { IntOffset((indicatorOffset.value - scrollOffset).fastRoundToInt(), 0) }
                     .width(config.tabWidth)
                     .fillMaxHeight()
-                    .squircleBackground(color = colors.backgroundColor(true), cornerRadius = config.cornerRadius),
+                    .squircleBackground(color = colors.backgroundColor(true), cornerRadius = config.cornerRadius)
+                    .then(
+                        if (showBorder) {
+                            Modifier.squircleBorder(
+                                width = SearchBarDefaults.HighContrastBorderWidth,
+                                color = colors.borderColor(),
+                                cornerRadius = config.cornerRadius,
+                            )
+                        } else Modifier
+                    ),
             )
             LazyRow(
                 state = config.listState,
@@ -321,12 +342,14 @@ private fun TabItem(
     indication: Indication? = null,
 ) {
     val outlineColor = MiuixTheme.colorScheme.outline
+    val highContrastMode = MiuixTheme.highContrastMode
+
     Box(
         modifier = Modifier
             .fillMaxHeight()
             .width(width)
             .squircleBorder(
-                width = { if (isSelected) 0.dp else 1.dp },
+                width = { if (isSelected && !highContrastMode) 0.dp else 1.dp },
                 color = { outlineColor },
                 cornerRadius = cornerRadius,
             )
@@ -522,12 +545,14 @@ object TabRowDefaults {
         contentColor: Color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
         selectedBackgroundColor: Color = MiuixTheme.colorScheme.surfaceContainer,
         selectedContentColor: Color = MiuixTheme.colorScheme.onBackground,
+        borderColor: Color = MiuixTheme.colorScheme.outline,
     ): TabRowColors = remember(backgroundColor, contentColor, selectedBackgroundColor, selectedContentColor) {
         TabRowColors(
             backgroundColor = backgroundColor,
             contentColor = contentColor,
             selectedBackgroundColor = selectedBackgroundColor,
             selectedContentColor = selectedContentColor,
+            borderAllColor = borderColor,
         )
     }
 }
@@ -538,10 +563,14 @@ data class TabRowColors(
     private val contentColor: Color,
     private val selectedBackgroundColor: Color,
     private val selectedContentColor: Color,
+    private val borderAllColor: Color,
 ) {
     @Stable
     internal fun backgroundColor(selected: Boolean): Color = if (selected) selectedBackgroundColor else backgroundColor
 
     @Stable
     internal fun contentColor(selected: Boolean): Color = if (selected) selectedContentColor else contentColor
+
+    @Stable
+    internal fun borderColor(): Color = borderAllColor
 }
