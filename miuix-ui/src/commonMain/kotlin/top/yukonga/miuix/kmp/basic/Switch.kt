@@ -170,7 +170,7 @@ fun Switch(
 
                     if (enabled) {
                         drawLine(
-                            color = thumbColorState.value,
+                            color = if (checked) thumbColorState.value else colors.borderColor,
                             start = markerCenter.copy(y = markerCenter.y - markerRadius),
                             end = markerCenter.copy(y = markerCenter.y + markerRadius),
                             strokeWidth = markerStrokeWidth,
@@ -178,14 +178,14 @@ fun Switch(
                         )
                     } else {
                         drawLine(
-                            color = thumbColorState.value,
+                            color = colors.borderColor,
                             start = markerCenter - Offset(markerRadius, markerRadius),
                             end = markerCenter + Offset(markerRadius, markerRadius),
                             strokeWidth = markerStrokeWidth,
                             cap = StrokeCap.Round,
                         )
                         drawLine(
-                            color = thumbColorState.value,
+                            color = colors.borderColor,
                             start = markerCenter + Offset(markerRadius, -markerRadius),
                             end = markerCenter + Offset(-markerRadius, markerRadius),
                             strokeWidth = markerStrokeWidth,
