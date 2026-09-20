@@ -835,7 +835,6 @@ private fun NavEntryHost(
     // Per-entry state scopes. The lifecycle owner is remembered per host; the saveable holder and the
     // view-model store registry are display-level and passed from NavDisplayLayout, so the entry's
     // ViewModelStore outlives this host (depth culling must not clear it).
-    val vmOwner = rememberNavEntryViewModelStoreOwner(viewModelStores, entry.contentKey)
     val maxLifecycle = Lifecycle.State.entries[depthBuckets and DEPTH_BUCKET_LIFECYCLE_MASK]
     val lifecycleOwner = rememberNavEntryLifecycleOwner(maxLifecycle)
 
@@ -857,18 +856,27 @@ private fun NavEntryHost(
     // the top (d <= 0), the upper neighbour's transition while covered (0 < d). The per-frame
     // visual is then a pure deferred read inside the transition's own graphicsLayer.
     val activeTransition = if ((depthBuckets and DEPTH_BUCKET_GOVERNS_OWN) != 0) ownTransition else upperTransition
-    val entryModifier = with(activeTransition) {
-        Modifier.transformEntry(
-            LiveNavTransitionScope(
-                presentation = presentation,
-                entryIndex = entryIndex,
-                isRemoving = entry.presentation.isRemoving,
-                change = change,
-                layoutSize = layoutSize,
-                layoutDirection = layoutDirection,
-                density = density,
-            ),
+    val transitionScope = remember(
+        presentation,
+        entryIndex,
+        entry.presentation.isRemoving,
+        change,
+        layoutSize,
+        layoutDirection,
+        density,
+    ) {
+        LiveNavTransitionScope(
+            presentation = presentation,
+            entryIndex = entryIndex,
+            isRemoving = entry.presentation.isRemoving,
+            change = change,
+            layoutSize = layoutSize,
+            layoutDirection = layoutDirection,
+            density = density,
         )
+    }
+    val entryModifier = with(activeTransition) {
+        Modifier.transformEntry(transitionScope)
     }
 
     val clipModifier = if ((depthBuckets and DEPTH_BUCKET_CLIP_CORNERS) != 0) {
@@ -919,10 +927,15 @@ private fun NavEntryHost(
 
     Box(modifier = entryModifier.then(clipModifier).then(blockInputModifier).then(opaqueInputModifier)) {
         ProvideNavEntryBackScope(entryDispatcherOwner) {
-            ProvideNavEntryViewModelStore(vmOwner) {
-                ProvideNavEntryLifecycle(lifecycleOwner) {
-                    stateHolder.EntryStateContent(entry.contentKey) {
-                        movableContent { entry.Content() }
+            stateHolder.EntryStateContent(entry.contentKey) {
+                val vmOwner = rememberNavEntryViewModelStoreOwner(viewModelStores, entry.contentKey)
+                ProvideNavEntryViewModelStore(vmOwner) {
+                    ProvideNavEntryLifecycle(lifecycleOwner) {
+                        movableContent {
+                            CompositionLocalProvider(LocalNavTransitionScope provides transitionScope) {
+                                entry.Content()
+                            }
+                        }
                     }
                 }
             }

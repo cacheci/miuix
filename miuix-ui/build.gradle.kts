@@ -43,7 +43,6 @@ kotlin {
     @OptIn(ExperimentalWasmDsl::class)
     wasmJs {
         browser()
-        binaries.executable()
     }
 
     js {
@@ -53,6 +52,10 @@ kotlin {
     applyMiuixSourceSetHierarchy()
 
     sourceSets {
+        commonTest.dependencies {
+            implementation(kotlin("test"))
+        }
+
         commonMain.dependencies {
             api(projects.miuixCore)
             api(projects.miuixSquircle)
