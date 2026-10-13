@@ -59,6 +59,22 @@ Miuix 提供了易于使用的越界回弹效果修饰符，让滚动体验更�
 
 越界回弹仅在按压或平移手势（触摸拖拽；Android 上的触控板平移）期间生效。鼠标滚轮与键盘滚动原样透传，桌面/macOS 的触控板滚动以滚轮事件送达，同样透传——它们没有“松手”信号，无法正确收束回弹。若使用 snap/pager 类自定义 fling 行为，滚轮的剩余速度仍可能在边缘产生一次轻微回弹。
 
+### Web 触屏滚动
+
+当触摸滚动与越界回弹应由 Compose 处理时，请在传给 `ComposeViewport` 的 HTML 容器上设置 `touch-action: none`：
+
+```css
+#composeApp {
+    touch-action: none;
+}
+```
+
+请使用实际的视口容器 ID。此规则必须在首次手势开始前生效；触摸开始后修改 `touch-action` 不会影响当前手势。容器上的限制也适用于 Compose 在其中创建的 canvas。
+
+在列表边界，拖拽位移可能完全被越界回弹消费，而列表本身没有移动。如果同一区域允许浏览器原生平移，浏览器可能接管并取消 Compose 手势。此 CSS 规则让触摸平移始终由 Compose 处理，无需禁用越界回弹，也不会影响鼠标滚轮输入。
+
+请仅对 Compose 容器应用此规则，不要扩大到整个页面。容器内的浏览器原生触摸平移和双指缩放会被禁用，因此仅适用于由 Compose 接管交互的区域。容器外的 HTML 区域仍可保留正常的浏览器手势。Android 和 iOS 原生应用无需此配置。
+
 ### 垂直越界回弹
 
 ```kotlin
@@ -101,8 +117,8 @@ LazyColumn(
 
 **参数说明:**
 
-* `nestedScrollToParent`：布尔值，是否分发嵌套滚动事件到父级。默认：`true`。
-* `isEnabled`：Lambda，是否启用越界回弹。默认：全平台启用。
+- `nestedScrollToParent`：布尔值，是否分发嵌套滚动事件到父级。默认：`true`。
+- `isEnabled`：Lambda，是否启用越界回弹。默认：全平台启用。
 
 ### 通过 OverscrollFactory（主题级集成）
 
@@ -146,13 +162,13 @@ LazyColumn(
 
 **与 `overScrollVertical()` 的对比：**
 
-| 特性 | `overScrollVertical()` | `MiuixOverscrollFactory` |
-| :--- | :---: | :---: |
-| 使用方式 | 每个组件手动添加 `Modifier` | 主题级别，自动生效 |
-| 物理效果 | 相同弹簧物理 | 相同弹簧物理 |
-| 默认启用平台 | 全平台 | 全平台（通过主题） |
-| 内容未超出容器时仍可触发 | ✅ | ❌ |
-| 需要逐个组件手动添加修饰符 | ✅ | ❌ |
+| 特性                       |   `overScrollVertical()`    | `MiuixOverscrollFactory` |
+| :------------------------- | :-------------------------: | :----------------------: |
+| 使用方式                   | 每个组件手动添加 `Modifier` |    主题级别，自动生效    |
+| 物理效果                   |        相同弹簧物理         |       相同弹簧物理       |
+| 默认启用平台               |           全平台            |    全平台（通过主题）    |
+| 内容未超出容器时仍可触发   |             ✅              |            ❌            |
+| 需要逐个组件手动添加修饰符 |             ✅              |            ❌            |
 
 > **限制说明：** `MiuixOverscrollFactory` 通过接收可滚动组件到达滚动边界后无法消耗的剩余 delta 来工作。如果内容未超出容器高度（例如 `LazyColumn` 的所有条目均能在屏幕内完整显示），可滚动组件不会到达真正的边界，`applyToScroll` 不会收到非零剩余量，越界回弹效果将**无法触发**。此类场景请改用 `overScrollVertical()`。
 
@@ -175,7 +191,7 @@ LazyColumn(
 
 **参数说明:**
 
-* `hapticFeedbackType`: 指定滚动到达末端时要执行的触觉反馈类型。默认为 `HapticFeedbackType.TextHandleMove`。您可以使用 `androidx.compose.ui.hapticfeedback.HapticFeedbackType` 中可用的其他类型。
+- `hapticFeedbackType`: 指定滚动到达末端时要执行的触觉反馈类型。默认为 `HapticFeedbackType.TextHandleMove`。您可以使用 `androidx.compose.ui.hapticfeedback.HapticFeedbackType` 中可用的其他类型。
 
 ## 按压反馈效果 (Modifier.pressable())
 
@@ -243,34 +259,38 @@ Box(
 `HorizontalPager` 内嵌竖向列表时，使用 `pagerGestureOverride` 可在列表惯性滚动或回弹期间横滑切页。
 
 ```kotlin
+val flingBehavior = PagerDefaults.flingBehavior(
+    state = pagerState,
+    snapAnimationSpec = PagerNavigationSpringSpec,
+)
+
 HorizontalPager(
     state = pagerState,
-    modifier = Modifier.pagerGestureOverride(pagerState),
+    modifier = Modifier.pagerGestureOverride(
+        pagerState = pagerState,
+        flingBehavior = flingBehavior,
+    ),
     userScrollEnabled = false,
+    flingBehavior = flingBehavior,
     pageNestedScrollConnection = PagerGestureNestedScrollConnection,
 ) { page ->
     // 页面内容，例如 LazyColumn
 }
 ```
 
-::: warning Cross-Axis 模式必需配置
-使用默认的 `CrossAxisInterceptor` 模式时，**必须同时设置**：
-
-- `userScrollEnabled = false`
-- `pageNestedScrollConnection = PagerGestureNestedScrollConnection`
-
-缺少任意一项都可能导致手势冲突或越界效果异常。切换到 `Native` 或 `TapToHalt` 时，请恢复这两项的 Pager 默认配置。
+::: warning Cross-Axis 配置
+请设置 `userScrollEnabled = false`，并向修饰符和 Pager 传入同一个 `flingBehavior`。Cross-Axis 会单独处理触摸，同时保留 Pager 的滚轮、Shift+滚轮、触控板和吸附行为。使用 `PagerGestureNestedScrollConnection` 可保证 Pager 回弹期间子列表仍能竖向滚动。
 :::
 
 ### 拦截模式 (`PagerInterceptionMode`)
 
 通过修饰符的 `mode` 参数选择交互方式：
 
-| 模式 | 行为 |
-| :--- | :--- |
-| `CrossAxisInterceptor`（默认） | 列表滚动或回弹时，仍可横滑切页。 |
-| `Native` | 使用 Compose 原生 Pager 手势。 |
-| `TapToHalt` | 列表惯性滚动时，首次横滑停止列表，再次横滑切页。 |
+| 模式                | 行为                                             |
+| :------------------ | :----------------------------------------------- |
+| `CrossAxis`（默认） | 列表滚动或回弹时，仍可横滑切页。                 |
+| `Native`            | 使用 Compose 原生 Pager 手势。                   |
+| `TapToHalt`         | 列表惯性滚动时，首次横滑停止列表，再次横滑切页。 |
 
 禁用滑动切页时，将修饰符的 `enabled` 和 Pager 的 `userScrollEnabled` 都设为 `false`。
 
